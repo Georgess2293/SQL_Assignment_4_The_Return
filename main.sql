@@ -12,30 +12,26 @@ WHERE se_rental.rental_id IS NULL
 WITH CTE_Total_Rentals AS
 (
 SELECT
-	se_city.city,
-	se_rental.customer_id,
+	se_customer.customer_id,
 	COUNT(se_rental.rental_id) AS Total_Rentals
-FROM public.rental AS se_rental
-INNER JOIN public.inventory AS se_inventory
-ON se_rental.inventory_id=se_inventory.inventory_id
-INNER JOIN public.store AS se_store
-ON se_inventory.store_id=se_store.store_id
-INNER JOIN public.address  AS se_address
-ON se_store.address_id=se_address.address_id
-INNER JOIN public.city AS se_city
-ON se_address.city_id=se_city.city_id
-
-GROUP BY 
-    se_city.city,
-	se_rental.customer_id
+FROM public.customer AS se_customer
+LEFT OUTER JOIN public.rental AS se_rental
+ON se_customer.customer_id=se_rental.customer_id
+GROUP BY se_customer.customer_id
 )
 
 SELECT 
-	city,
+    se_city.city,
 	ROUND(AVG(Total_Rentals),2)
 FROM CTE_Total_Rentals
+INNER JOIN public.customer AS se_customer
+ON CTE_Total_Rentals.customer_id=se_customer.customer_id
+INNER JOIN public.address AS se_address
+ON se_customer.address_id=se_address.address_id
+INNER JOIN public.city AS se_city
+ON se_address.city_id=se_city.city_id
 GROUP BY 
-    city
+    se_city.city
 
 -- Identify films that have been rented more than the average number of times and are currently not in inventory
 
